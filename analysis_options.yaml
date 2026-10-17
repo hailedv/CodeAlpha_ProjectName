@@ -2,7 +2,16 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
+    # Code quality rules
     prefer_const_constructors: true
     prefer_const_literals_to_create_immutables: true
     avoid_print: false
     use_key_in_widget_constructors: true
+    
+    # Line length rule - warn if lines are too long
+    lines_longer_than_80_chars: true
+
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'

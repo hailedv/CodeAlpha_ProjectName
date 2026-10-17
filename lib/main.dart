@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-// import 'package:device_preview/device_preview.dart';  // Temporarily disabled
-import 'providers/app_provider.dart';
-import 'screens/home_screen_new.dart';
-import 'theme/app_theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/theme/app_theme.dart';
+import 'features/flashcard/presentation/providers/flashcard_providers.dart';
+import 'features/flashcard/presentation/screens/flashcard_study_screen.dart';
 
-void main() {
-  runApp(const FlashcardQuizApp());  // Simplified - no DevicePreview
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize SharedPreferences
+  final sharedPreferences = await SharedPreferences.getInstance();
+  
+  runApp(
+    ProviderScope(
+      overrides: [
+        // Override sharedPreferences provider
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+      ],
+      child: const FlashcardQuizApp(),
+    ),
+  );
 }
 
 class FlashcardQuizApp extends StatelessWidget {
@@ -14,22 +27,13 @@ class FlashcardQuizApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AppProvider()..initialize(),
-      child: Consumer<AppProvider>(
-        builder: (context, appProvider, _) {
-          return MaterialApp(
-            title: 'Flashcard Quiz Pro',
-            debugShowCheckedModeBanner: false,
-            themeMode: appProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            home: const HomeScreenNew(),
-          );
-        },
-      ),
+    return MaterialApp(
+      title: 'Flashcard Quiz Pro - Clean Architecture',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const FlashcardStudyScreen(),
     );
   }
 }
-
-

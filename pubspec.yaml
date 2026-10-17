@@ -1,7 +1,7 @@
 name: flashcard_quiz_app
-description: A modern Flutter flashcard quiz app with AI-powered document upload. Study smarter with multiple-choice questions, instant feedback, and beautiful UI.
+description: A modern Flutter flashcard quiz app with AI-powered document upload. Built with Clean Architecture and Riverpod.
 publish_to: 'none'
-version: 1.0.0+1
+version: 2.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -10,28 +10,43 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # Core dependencies
-  provider: ^6.1.1                     # State management
-  shared_preferences: ^2.2.2           # Local storage
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
   
-  # Document upload features
-  file_picker: ^6.1.1                  # File selection
-  syncfusion_flutter_pdf: ^28.1.33     # PDF text extraction
+  # Functional Programming
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
   
-  # UI components
-  cupertino_icons: ^1.0.2              # iOS icons
-  flutter_slidable: ^3.0.1             # Swipe actions
-  fl_chart: ^0.66.0                    # Statistics charts
+  # Local Storage
+  shared_preferences: ^2.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
+  # Document Processing
+  file_picker: ^6.1.1
+  syncfusion_flutter_pdf: ^28.1.33
+  
+  # UI Components
+  cupertino_icons: ^1.0.2
+  flutter_slidable: ^3.0.1
+  fl_chart: ^0.66.0
   
   # Utilities
-  intl: ^0.20.2                        # Date formatting
-  path_provider: ^2.1.2                # File paths
-  share_plus: ^7.2.1                   # Share functionality
+  intl: ^0.20.2
+  path_provider: ^2.1.2
+  dartz: ^0.10.1
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  build_runner: ^2.4.7
+  freezed: ^2.4.6
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.3.9
+  mockito: ^5.4.4
 
 flutter:
   uses-material-design: true

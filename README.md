@@ -1,10 +1,28 @@
 # 📚 Flashcard Quiz Pro
 
+<div align="center">
+
 A modern, feature-rich flashcard quiz application built with Flutter. Upload documents and automatically generate flashcards with AI, or create custom quiz questions.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
+
+</div>
+
+---
+
+## 📱 App Preview
+
+<p align="center">
+  <img src="screenshots/home-screen.png" alt="Flashcard Quiz Pro - Home Screen" width="100%"/>
+</p>
+
+<p align="center">
+  <i>✨ Beautiful gold-themed interface with category filters, search functionality, and quick action buttons</i>
+</p>
+
+---
 
 ## ✨ Features
 
