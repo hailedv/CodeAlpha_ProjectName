@@ -137,78 +137,41 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: Theme.of(context).colorScheme.surface,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Question Section
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.help_outline,
-                    size: 40,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Question',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    flashcard.question,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-            // Answer Section (only show when flipped)
-            if (_isFlipped) ...[
-              const SizedBox(height: 24),
-              const Divider(thickness: 2),
-              const SizedBox(height: 24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Question Section
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   children: [
                     Icon(
-                      Icons.check_circle_outline,
-                      size: 40,
-                      color: Colors.green.shade700,
+                      Icons.help_outline,
+                      size: 36,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Text(
-                      'Answer',
+                      'Question',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.green.shade700,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      flashcard.answer,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.green.shade900,
+                      flashcard.question,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                       textAlign: TextAlign.center,
@@ -216,8 +179,47 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
                   ],
                 ),
               ),
+              // Answer Section (only show when flipped)
+              if (_isFlipped) ...[
+                const SizedBox(height: 20),
+                const Divider(thickness: 2),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        size: 36,
+                        color: Colors.green.shade700,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Answer',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        flashcard.answer,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.green.shade900,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
