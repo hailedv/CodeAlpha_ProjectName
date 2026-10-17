@@ -14,6 +14,7 @@ class FlashcardStudyScreen extends ConsumerStatefulWidget {
 
 class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
   bool _isFlipped = false;
+  String? _selectedCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +28,87 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
       }
     });
 
+    // Filter flashcards by category
+    final flashcards = _selectedCategory == null
+        ? state.flashcards
+        : state.flashcards
+            .where((card) => card.categoryId == _selectedCategory)
+            .toList();
+
+    final filteredState = state.copyWith(
+      flashcards: flashcards,
+      currentIndex: flashcards.isEmpty ? 0 : (state.currentIndex >= flashcards.length ? 0 : state.currentIndex),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flashcard Quiz'),
         centerTitle: true,
         actions: [
+          // Category Filter Button
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Choose Category',
+            onSelected: (value) {
+              setState(() {
+                _selectedCategory = value == 'all' ? null : value;
+                _isFlipped = false;
+              });
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'all',
+                child: Row(
+                  children: [
+                    Icon(Icons.all_inclusive, color: Colors.grey),
+                    SizedBox(width: 12),
+                    Text('All Categories'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'mathematics',
+                child: Row(
+                  children: [
+                    Icon(Icons.calculate, color: Colors.pink),
+                    const SizedBox(width: 12),
+                    Text('Mathematics (${state.flashcards.where((c) => c.categoryId == 'mathematics').length})'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'english',
+                child: Row(
+                  children: [
+                    Icon(Icons.menu_book, color: Colors.blue),
+                    const SizedBox(width: 12),
+                    Text('English (${state.flashcards.where((c) => c.categoryId == 'english').length})'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'science',
+                child: Row(
+                  children: [
+                    Icon(Icons.science, color: Colors.green),
+                    const SizedBox(width: 12),
+                    Text('Science (${state.flashcards.where((c) => c.categoryId == 'science').length})'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'general',
+                child: Row(
+                  children: [
+                    Icon(Icons.lightbulb, color: Colors.amber),
+                    const SizedBox(width: 12),
+                    Text('General (${state.flashcards.where((c) => c.categoryId == 'general').length})'),
+                  ],
+                ),
+              ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.add_circle),
             onPressed: () => _navigateToAddCard(context),
@@ -40,9 +117,9 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
           ),
         ],
       ),
-      body: _buildBody(context, state, notifier),
-      bottomNavigationBar: state.flashcards.isNotEmpty 
-          ? _buildNavigationBar(context, state, notifier)
+      body: _buildBody(context, filteredState, notifier),
+      bottomNavigationBar: flashcards.isNotEmpty 
+          ? _buildNavigationBar(context, filteredState, notifier)
           : null,
     );
   }
@@ -66,6 +143,45 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
 
     return Column(
       children: [
+        // Category Badge (if filtered)
+        if (_selectedCategory != null)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _getCategoryIcon(_selectedCategory!),
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Showing: ${_getCategoryName(_selectedCategory!)}',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = null;
+                      _isFlipped = false;
+                    });
+                  },
+                  child: Icon(
+                    Icons.close,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         // Progress indicator
         Padding(
           padding: const EdgeInsets.all(24),
@@ -391,5 +507,35 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
         ],
       ),
     );
+  }
+
+  IconData _getCategoryIcon(String categoryId) {
+    switch (categoryId) {
+      case 'mathematics':
+        return Icons.calculate;
+      case 'english':
+        return Icons.menu_book;
+      case 'science':
+        return Icons.science;
+      case 'general':
+        return Icons.lightbulb;
+      default:
+        return Icons.category;
+    }
+  }
+
+  String _getCategoryName(String categoryId) {
+    switch (categoryId) {
+      case 'mathematics':
+        return 'Mathematics';
+      case 'english':
+        return 'English';
+      case 'science':
+        return 'Science';
+      case 'general':
+        return 'General Knowledge';
+      default:
+        return 'Other';
+    }
   }
 }
