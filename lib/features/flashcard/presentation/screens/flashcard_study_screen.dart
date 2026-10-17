@@ -4,6 +4,7 @@ import '../providers/flashcard_providers.dart';
 import '../providers/flashcard_state.dart';
 import 'flashcard_form_screen.dart';
 import 'flashcard_quiz_mode_screen.dart';
+import 'flashcard_exam_mode_screen.dart';
 
 /// Main Flashcard Study Screen - Simple & Clean UI
 class FlashcardStudyScreen extends ConsumerStatefulWidget {
@@ -46,7 +47,14 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
         title: const Text('Flashcard Quiz'),
         centerTitle: true,
         actions: [
-          // Quiz Mode Button
+          // Exam Mode Button (Answer all, then submit)
+          IconButton(
+            icon: const Icon(Icons.assignment),
+            onPressed: () => _navigateToExamMode(context),
+            tooltip: 'Exam Mode',
+            iconSize: 28,
+          ),
+          // Quiz Mode Button (One by one)
           IconButton(
             icon: const Icon(Icons.quiz),
             onPressed: () => _navigateToQuizMode(context),
@@ -483,6 +491,15 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => const FlashcardQuizModeScreen(),
+      ),
+    );
+  }
+
+  void _navigateToExamMode(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FlashcardExamModeScreen(),
       ),
     );
   }
