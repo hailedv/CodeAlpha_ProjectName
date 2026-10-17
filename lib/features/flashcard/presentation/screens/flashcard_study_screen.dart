@@ -17,6 +17,16 @@ class FlashcardStudyScreen extends ConsumerStatefulWidget {
 class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
   bool _isFlipped = false;
   String? _selectedCategory;
+  bool _showAnswerInput = false;
+  final TextEditingController _userAnswerController = TextEditingController();
+  bool _hasCheckedAnswer = false;
+  bool _isUserAnswerCorrect = false;
+
+  @override
+  void dispose() {
+    _userAnswerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +36,13 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
     // Reset flip state when card changes
     ref.listen(flashcardNotifierProvider, (previous, next) {
       if (previous?.currentIndex != next.currentIndex) {
-        setState(() => _isFlipped = false);
+        setState(() {
+          _isFlipped = false;
+          _showAnswerInput = false;
+          _hasCheckedAnswer = false;
+          _isUserAnswerCorrect = false;
+          _userAnswerController.clear();
+        });
       }
     });
 
@@ -216,33 +232,190 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
             child: _buildSimpleCard(context, state.currentFlashcard!),
           ),
         ),
-        // Show Answer Button
-        if (!_isFlipped)
+        
+        // Answer Input Section (Before showing answer)
+        if (!_isFlipped && !_showAnswerInput)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() => _isFlipped = true);
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 48),
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            child: Column(
+              children: [
+                Text(
+                  'Try to answer first!',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-              ),
-              child: const Text(
-                'Show Answer',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() => _showAnswerInput = true);
+                        },
+                        icon: const Icon(Icons.edit),
+                        label: const Text('I want to answer'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() => _isFlipped = true);
+                        },
+                        icon: const Icon(Icons.visibility),
+                        label: const Text('Show Answer'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
+
+        // User Answer Input Field
+        if (!_isFlipped && _showAnswerInput && !_hasCheckedAnswer)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _userAnswerController,
+                  decoration: InputDecoration(
+                    labelText: 'Your Answer',
+                    hintText: 'Type your answer here...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    prefixIcon: const Icon(Icons.edit),
+                  ),
+                  maxLines: 2,
+                  textCapitalization: TextCapitalization.sentences,
+                  autofocus: true,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _showAnswerInput = false;
+                            _userAnswerController.clear();
+                          });
+                        },
+                        icon: const Icon(Icons.close),
+                        label: const Text('Cancel'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        onPressed: _userAnswerController.text.trim().isEmpty
+                            ? null
+                            : _checkUserAnswer,
+                        icon: const Icon(Icons.check),
+                        label: const Text('Check Answer'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+        // Answer Feedback (After checking)
+        if (!_isFlipped && _hasCheckedAnswer)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              children: [
+                Card(
+                  elevation: 4,
+                  color: _isUserAnswerCorrect
+                      ? Colors.green.shade50
+                      : Colors.orange.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Icon(
+                          _isUserAnswerCorrect
+                              ? Icons.check_circle
+                              : Icons.info,
+                          size: 48,
+                          color: _isUserAnswerCorrect
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _isUserAnswerCorrect
+                              ? 'Correct! 🎉'
+                              : 'Let\'s check the answer',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: _isUserAnswerCorrect
+                                    ? Colors.green.shade700
+                                    : Colors.orange.shade700,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your answer: ${_userAnswerController.text}',
+                          style: const TextStyle(fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() => _isFlipped = true);
+                  },
+                  icon: const Icon(Icons.visibility),
+                  label: const Text('Show Correct Answer'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Show Answer Button (When flipped = false and no input shown)
         if (_isFlipped)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: OutlinedButton(
               onPressed: () {
-                setState(() => _isFlipped = false);
+                setState(() {
+                  _isFlipped = false;
+                  _showAnswerInput = false;
+                  _hasCheckedAnswer = false;
+                  _userAnswerController.clear();
+                });
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 48),
@@ -571,5 +744,33 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
       default:
         return 'Other';
     }
+  }
+}
+
+
+  void _checkUserAnswer() {
+    final state = ref.read(flashcardNotifierProvider);
+    final currentCard = state.currentFlashcard!;
+    final userAnswer = _userAnswerController.text.trim().toLowerCase();
+    final correctAnswer = currentCard.answer.toLowerCase();
+
+    // Check if answer is correct (case-insensitive, partial match)
+    final isCorrect = correctAnswer.contains(userAnswer) ||
+        userAnswer.contains(correctAnswer) ||
+        _normalizeAnswer(userAnswer) == _normalizeAnswer(correctAnswer);
+
+    setState(() {
+      _hasCheckedAnswer = true;
+      _isUserAnswerCorrect = isCorrect;
+    });
+  }
+
+  String _normalizeAnswer(String answer) {
+    // Remove extra spaces, punctuation, and normalize
+    return answer
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 }
