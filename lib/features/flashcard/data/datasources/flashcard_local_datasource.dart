@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/flashcard_model.dart';
+import 'sample_flashcards.dart';
 
 /// Abstract interface for local data source
 abstract class FlashcardLocalDataSource {
@@ -15,16 +16,46 @@ abstract class FlashcardLocalDataSource {
 /// Implementation using SharedPreferences
 class FlashcardLocalDataSourceImpl implements FlashcardLocalDataSource {
   static const String _flashcardsKey = 'CACHED_FLASHCARDS';
+  static const String _firstLaunchKey = 'FIRST_LAUNCH';
   final SharedPreferences sharedPreferences;
 
   FlashcardLocalDataSourceImpl({required this.sharedPreferences});
 
   @override
   Future<List<FlashcardModel>> getAllFlashcards() async {
+    // Check if first launch
+    final isFirstLaunch = sharedPreferences.getBool(_firstLaunchKey) ?? true;
+    
+    if (isFirstLaunch) {
+      // Load sample flashcards on first launch
+      final sampleCards = SampleFlashcards.all
+          .map((entity) => FlashcardModel(
+                id: entity.id,
+                question: entity.question,
+                answer: entity.answer,
+                categoryId: entity.categoryId,
+                isFavorite: entity.isFavorite,
+                createdAt: entity.createdAt,
+                lastReviewedAt: entity.lastReviewedAt,
+                reviewCount: entity.reviewCount,
+                correctCount: entity.correctCount,
+                hint: entity.hint,
+                tags: entity.tags,
+                isMultipleChoice: entity.isMultipleChoice,
+                choices: entity.choices,
+                correctChoiceIndex: entity.correctChoiceIndex,
+              ))
+          .toList();
+      
+      await cacheFlashcards(sampleCards);
+      await sharedPreferences.setBool(_firstLaunchKey, false);
+      return sampleCards;
+    }
+    
     final jsonString = sharedPreferences.getString(_flashcardsKey);
     
     if (jsonString == null) {
-      return _getDefaultFlashcards();
+      return [];
     }
     
     try {
@@ -80,37 +111,5 @@ class FlashcardLocalDataSourceImpl implements FlashcardLocalDataSource {
     final flashcards = await getAllFlashcards();
     flashcards.removeWhere((card) => card.id == id);
     await cacheFlashcards(flashcards);
-  }
-
-  /// Get default flashcards on first launch
-  List<FlashcardModel> _getDefaultFlashcards() {
-    return [
-      FlashcardModel(
-        id: '1',
-        question: 'What is Flutter?',
-        answer:
-            'Flutter is Google\'s UI toolkit for building natively compiled applications for mobile, web, and desktop from a single codebase.',
-        categoryId: 'flutter',
-        createdAt: DateTime.now(),
-        isMultipleChoice: true,
-        choices: [
-          'A programming language',
-          'A UI framework',
-          'A database',
-          'An operating system',
-        ],
-        correctChoiceIndex: 1,
-        tags: ['flutter', 'basics'],
-      ),
-      FlashcardModel(
-        id: '2',
-        question: 'What is Clean Architecture?',
-        answer:
-            'Clean Architecture is a software design philosophy that separates concerns into layers, making the codebase independent of frameworks, UI, and databases.',
-        categoryId: 'architecture',
-        createdAt: DateTime.now(),
-        tags: ['architecture', 'design'],
-      ),
-    ];
   }
 }
