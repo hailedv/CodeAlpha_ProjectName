@@ -23,6 +23,15 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
   bool _isUserAnswerCorrect = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Listen to text changes to enable/disable button
+    _userAnswerController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _userAnswerController.dispose();
     super.dispose();
@@ -323,9 +332,9 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
                     Expanded(
                       flex: 2,
                       child: ElevatedButton.icon(
-                        onPressed: _userAnswerController.text.trim().isEmpty
-                            ? null
-                            : _checkUserAnswer,
+                        onPressed: _userAnswerController.text.trim().isNotEmpty
+                            ? _checkUserAnswer
+                            : null,
                         icon: const Icon(Icons.check),
                         label: const Text('Check Answer'),
                         style: ElevatedButton.styleFrom(
