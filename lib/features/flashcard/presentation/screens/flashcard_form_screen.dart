@@ -160,6 +160,7 @@ class _FlashcardFormScreenState extends ConsumerState<FlashcardFormScreen> {
   void _saveFlashcard() {
     if (_formKey.currentState!.validate()) {
       final notifier = ref.read(flashcardNotifierProvider.notifier);
+      final isEditing = widget.flashcard != null;
 
       final flashcard = FlashcardEntity(
         id: widget.flashcard?.id ??
@@ -169,25 +170,31 @@ class _FlashcardFormScreenState extends ConsumerState<FlashcardFormScreen> {
         createdAt: widget.flashcard?.createdAt ?? DateTime.now(),
       );
 
-      if (widget.flashcard == null) {
-        notifier.addNewFlashcard(flashcard);
-      } else {
+      if (isEditing) {
         notifier.updateExistingFlashcard(flashcard);
+      } else {
+        notifier.addNewFlashcard(flashcard);
       }
 
+      // Pop the screen
       Navigator.pop(context);
       
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.flashcard == null 
-                ? 'Flashcard added successfully!' 
-                : 'Flashcard updated successfully!',
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Show success message on the previous screen
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isEditing 
+                    ? 'Flashcard updated successfully!' 
+                    : 'Flashcard added successfully!',
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      });
     }
   }
 }

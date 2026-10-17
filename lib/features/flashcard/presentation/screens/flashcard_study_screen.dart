@@ -376,8 +376,14 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
           ),
           TextButton(
             onPressed: () {
-              notifier.deleteFlashcard(id);
+              notifier.deleteFlashcardById(id);
               Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Flashcard deleted successfully!'),
+                  backgroundColor: Colors.red,
+                ),
+              );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
