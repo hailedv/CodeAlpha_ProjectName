@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/entities/category_entity.dart';
 import '../providers/flashcard_providers.dart';
 import '../providers/flashcard_state.dart';
-import '../widgets/flip_card_widget.dart';
 import 'flashcard_form_screen.dart';
 
-/// Main Flashcard Study Screen - Clean Architecture UI
+/// Main Flashcard Study Screen - Simple & Clean UI
 class FlashcardStudyScreen extends ConsumerStatefulWidget {
   const FlashcardStudyScreen({super.key});
 
@@ -15,7 +13,6 @@ class FlashcardStudyScreen extends ConsumerStatefulWidget {
 }
 
 class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
-  String? _selectedCategoryFilter;
   bool _isFlipped = false;
 
   @override
@@ -30,71 +27,22 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
       }
     });
 
-    // Filter flashcards by category
-    final flashcards = _selectedCategoryFilter == null
-        ? state.flashcards
-        : state.flashcards
-            .where((card) => card.categoryId == _selectedCategoryFilter)
-            .toList();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flashcard Quiz Pro'),
+        title: const Text('Flashcard Quiz'),
+        centerTitle: true,
         actions: [
-          // Category Filter
-          PopupMenuButton<String>(
-            icon: Icon(
-              _selectedCategoryFilter == null
-                  ? Icons.filter_list
-                  : Icons.filter_alt,
-            ),
-            tooltip: 'Filter by Category',
-            onSelected: (value) {
-              setState(() {
-                _selectedCategoryFilter = value == 'all' ? null : value;
-              });
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'all',
-                child: Row(
-                  children: [
-                    Icon(Icons.all_inclusive),
-                    SizedBox(width: 12),
-                    Text('All Categories'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              ...Categories.all.map((category) {
-                return PopupMenuItem(
-                  value: category.id,
-                  child: Row(
-                    children: [
-                      Icon(category.icon, color: category.color),
-                      const SizedBox(width: 12),
-                      Text(category.name),
-                    ],
-                  ),
-                );
-              }),
-            ],
-          ),
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add_circle),
             onPressed: () => _navigateToAddCard(context),
-            tooltip: 'Add Flashcard',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => notifier.loadFlashcards(),
-            tooltip: 'Refresh',
+            tooltip: 'Add New Flashcard',
+            iconSize: 32,
           ),
         ],
       ),
-      body: _buildBody(context, state.copyWith(flashcards: flashcards), notifier),
-      bottomNavigationBar: flashcards.isNotEmpty 
-          ? _buildNavigationBar(context, state.copyWith(flashcards: flashcards), notifier)
+      body: _buildBody(context, state, notifier),
+      bottomNavigationBar: state.flashcards.isNotEmpty 
+          ? _buildNavigationBar(context, state, notifier)
           : null,
     );
   }
@@ -116,58 +64,162 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
       return const Center(child: Text('No flashcard available'));
     }
 
-    final category = Categories.getById(state.currentFlashcard!.categoryId);
-
     return Column(
       children: [
-        // Category Badge
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Chip(
-            avatar: Icon(category.icon, color: category.color, size: 18),
-            label: Text(
-              category.name,
-              style: TextStyle(color: category.color, fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: category.color.withOpacity(0.1),
-            side: BorderSide(color: category.color, width: 1.5),
-          ),
-        ),
         // Progress indicator
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            children: [
-              LinearProgressIndicator(
-                value: (state.currentIndex + 1) / state.flashcards.length,
-                backgroundColor:
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Card ${state.currentIndex + 1} of ${state.flashcards.length}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Card ${state.currentIndex + 1} of ${state.flashcards.length}',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
         // Flashcard
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: FlipCardWidget(
-              flashcard: state.currentFlashcard!,
-              isFlipped: _isFlipped,
-              onTap: () {
-                setState(() => _isFlipped = !_isFlipped);
-              },
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: _buildSimpleCard(context, state.currentFlashcard!),
           ),
         ),
+        // Show Answer Button
+        if (!_isFlipped)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() => _isFlipped = true);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 48),
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Show Answer',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        if (_isFlipped)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: OutlinedButton(
+              onPressed: () {
+                setState(() => _isFlipped = false);
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 48),
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Hide Answer',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  /// Simple card without 3D flip animation - just show/hide
+  Widget _buildSimpleCard(BuildContext context, flashcard) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Theme.of(context).colorScheme.surface,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Question Section
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.help_outline,
+                    size: 40,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Question',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    flashcard.question,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            // Answer Section (only show when flipped)
+            if (_isFlipped) ...[
+              const SizedBox(height: 24),
+              const Divider(thickness: 2),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 40,
+                      color: Colors.green.shade700,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Answer',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      flashcard.answer,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.green.shade900,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -208,7 +260,7 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
     dynamic notifier,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
@@ -222,34 +274,69 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          IconButton.filled(
-            onPressed: state.currentIndex > 0 ? () => notifier.previousCard() : null,
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Previous',
+          // Previous Button
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: state.currentIndex > 0 
+                ? () {
+                    notifier.previousCard();
+                    setState(() => _isFlipped = false);
+                  } 
+                : null,
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Previous'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
+          const SizedBox(width: 12),
+          // Edit Button
           IconButton.filled(
             onPressed: state.currentFlashcard != null
                 ? () => _navigateToEditCard(context, state.currentFlashcard!)
                 : null,
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit',
+            tooltip: 'Edit Flashcard',
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(16),
+            ),
           ),
+          const SizedBox(width: 12),
+          // Delete Button
           IconButton.filled(
             onPressed: state.currentFlashcard != null
                 ? () => _confirmDelete(context, notifier, state.currentFlashcard!.id)
                 : null,
             icon: const Icon(Icons.delete),
-            tooltip: 'Delete',
+            tooltip: 'Delete Flashcard',
             style: IconButton.styleFrom(
               backgroundColor: Colors.red.shade400,
+              padding: const EdgeInsets.all(16),
             ),
           ),
-          IconButton.filled(
-            onPressed: state.currentIndex < state.flashcards.length - 1
-                ? () => notifier.nextCard()
+          const SizedBox(width: 12),
+          // Next Button
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: state.currentIndex < state.flashcards.length - 1
+                ? () {
+                    notifier.nextCard();
+                    setState(() => _isFlipped = false);
+                  }
                 : null,
-            icon: const Icon(Icons.arrow_forward),
-            tooltip: 'Next',
+              icon: const Icon(Icons.arrow_forward),
+              label: const Text('Next'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ],
       ),
