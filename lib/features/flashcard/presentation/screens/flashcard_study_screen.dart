@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/flashcard_providers.dart';
 import '../providers/flashcard_state.dart';
 import 'flashcard_form_screen.dart';
+import 'flashcard_quiz_mode_screen.dart';
 
 /// Main Flashcard Study Screen - Simple & Clean UI
 class FlashcardStudyScreen extends ConsumerStatefulWidget {
@@ -45,6 +46,13 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
         title: const Text('Flashcard Quiz'),
         centerTitle: true,
         actions: [
+          // Quiz Mode Button
+          IconButton(
+            icon: const Icon(Icons.quiz),
+            onPressed: () => _navigateToQuizMode(context),
+            tooltip: 'Quiz Mode',
+            iconSize: 28,
+          ),
           // Category Filter Button
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -466,6 +474,15 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => const FlashcardFormScreen(),
+      ),
+    );
+  }
+
+  void _navigateToQuizMode(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FlashcardQuizModeScreen(),
       ),
     );
   }
