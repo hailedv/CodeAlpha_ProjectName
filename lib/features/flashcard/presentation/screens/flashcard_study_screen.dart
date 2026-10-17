@@ -754,8 +754,6 @@ class _FlashcardStudyScreenState extends ConsumerState<FlashcardStudyScreen> {
         return 'Other';
     }
   }
-}
-
 
   void _checkUserAnswer() {
     final state = ref.read(flashcardNotifierProvider);
